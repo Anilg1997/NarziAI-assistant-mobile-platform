@@ -1,7 +1,7 @@
 # ============================================================================
 # build-native.yml - GitHub Actions workflow
-# Builds libnarzoai_jni.so for arm64-v8a and armeabi-v7a,
-# then uploads them as release artifacts for the fallback download task.
+# Builds libnarzoai_jni.so for arm64-v8a and armeabi-v7a via CMake/NDK,
+# then verifies the full Android APK build with Gradle.
 # ============================================================================
 
 name: Build Native Libraries
@@ -19,12 +19,17 @@ on:
   release:
     types: [published]
 
-  # Trigger on pushes to main that change native code
+  # Trigger on pushes to main that change native or build config
   push:
     branches: [main]
     paths:
       - 'app/src/main/cpp/**'
       - 'app/build.gradle'
+      - 'build.gradle'
+      - 'gradle/wrapper/gradle-wrapper.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - '.github/workflows/build-native.yml'
 
 jobs:
   build:
@@ -52,13 +57,22 @@ jobs:
           fetch-depth: 1
 
       # ======================================================================
-      # Step 2: Set up Android NDK
+      # Step 2: Set up Java 17 for Gradle build verification
+      # ======================================================================
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # ======================================================================
+      # Step 3: Set up Android NDK
       # ======================================================================
       - name: Setup Android NDK
         id: setup_ndk
         run: |
           # Download and extract Android NDK
-          NDK_VERSION="r26d"
+          NDK_VERSION="r27c"
           NDK_ZIP="android-ndk-${NDK_VERSION}-linux.zip"
           NDK_URL="https://dl.google.com/android/repository/${NDK_ZIP}"
 
@@ -71,7 +85,7 @@ jobs:
           echo "NDK extracted to /tmp/android-ndk-${NDK_VERSION}"
 
       # ======================================================================
-      # Step 3: Clone native library sources
+      # Step 4: Clone native library sources
       # ======================================================================
       - name: Clone llama.cpp
         run: |
@@ -88,7 +102,7 @@ jobs:
           echo "whisper.cpp cloned"
 
       # ======================================================================
-      # Step 4: Configure CMake
+      # Step 5: Configure CMake
       # ======================================================================
       - name: Configure CMake for ${{ matrix.abi }}
         run: |
@@ -109,7 +123,7 @@ jobs:
             -DCMAKE_ANDROID_ARCH_ABI=${{ matrix.abi }}
 
       # ======================================================================
-      # Step 5: Build
+      # Step 6: Build native library
       # ======================================================================
       - name: Build libnarzoai_jni.so for ${{ matrix.abi }}
         run: |
@@ -117,7 +131,7 @@ jobs:
           cmake --build . --target narzoai_jni --config Release -j$(nproc)
 
       # ======================================================================
-      # Step 6: Verify and copy output
+      # Step 7: Verify and copy output
       # ======================================================================
       - name: Verify and copy .so file
         run: |
@@ -142,7 +156,7 @@ jobs:
           ls -lh /tmp/output/${{ matrix.abi }}/libnarzoai_jni.so
 
       # ======================================================================
-      # Step 7: Upload artifact
+      # Step 8: Upload native artifact
       # ======================================================================
       - name: Upload .so artifact for ${{ matrix.abi }}
         uses: actions/upload-artifact@v4
@@ -153,7 +167,53 @@ jobs:
           retention-days: 90
 
   # ==========================================================================
-  # Package job: Combine both ABIs into a single release package
+  # Verify job: Build full APK using the pre-built native libraries
+  # ==========================================================================
+  verify-apk:
+    name: Verify APK build
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Download all native artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Copy .so files to jniLibs
+        run: |
+          mkdir -p app/src/main/jniLibs/arm64-v8a
+          mkdir -p app/src/main/jniLibs/armeabi-v7a
+          cp libnarzoai_jni_arm64-v8a/libnarzoai_jni.so app/src/main/jniLibs/arm64-v8a/
+          cp libnarzoai_jni_armeabi-v7a/libnarzoai_jni.so app/src/main/jniLibs/armeabi-v7a/
+
+      - name: Build APK with Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug -PusePrebuiltNative --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  # ==========================================================================
+  # Package job: Combine both ABIs into a single release archive
   # ==========================================================================
   package:
     name: Package release archive
