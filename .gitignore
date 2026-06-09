@@ -1,0 +1,77 @@
+# ==============
+# Android
+# ==============
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# ==============
+# App Build
+# ==============
+app/build/
+app/release/
+app/*.apk
+app/*.aab
+app/*.jks
+app/*.keystore
+
+# ==============
+# Native Libraries
+# ==============
+app/src/main/jniLibs/
+app/src/main/obj/
+
+# ==============
+# AI Model Files (too large for git)
+# ==============
+app/src/main/assets/models/*.gguf
+app/src/main/assets/models/*.bin
+app/src/main/assets/models/*.model
+!app/src/main/assets/models/.gitkeep
+
+# ==============
+# IDE
+# ==============
+.idea/
+*.iws
+*.ipr
+*.swp
+*.swo
+*~
+
+# ==============
+# OS
+# ==============
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.DS_Store
+
+# ==============
+# Gradle
+# ==============
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# ==============
+# Misc
+# ==============
+*.log
+*.tmp
+*.bak
+*.orig
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# ==============
+# Kotlin
+# ==============
+*.kotlin_module

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- NarzoAI "N" letter icon foreground -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,38 L34,70 L42,70 L42,56 L52,56 L52,70 L60,70 L60,38 L52,38 L52,50 L42,50 L42,38 Z" />
+    <!-- AI brain/network dots -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M68,45 A2,2 0 1,0 68,49 A2,2 0 1,0 68,45 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M76,45 A2,2 0 1,0 76,49 A2,2 0 1,0 76,45 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M72,52 A2,2 0 1,0 72,56 A2,2 0 1,0 72,52 Z" />
+    <!-- Connection lines -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,47 L72,54"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M74,47 L72,54"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5" />
+    <!-- Sound wave -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M75,58 A5,5 0 0,1 75,68"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M72,55 A9,9 0 0,1 72,73"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5" />
+</vector>

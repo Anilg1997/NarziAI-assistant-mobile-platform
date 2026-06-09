@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <!-- Toolbar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/surface"
+        app:titleTextColor="@color/on_surface"
+        app:menu="@menu/main_menu" />
+
+    <!-- Progress Overlay (shown during model loading) -->
+    <FrameLayout
+        android:id="@+id/progress_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp">
+
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/primary" />
+
+            <TextView
+                android:id="@+id/progress_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Loading AI Model..."
+                android:textColor="@android:color/white"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Main Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="?attr/actionBarSize">
+
+        <!-- Status Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@color/surface"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:elevation="2dp">
+
+            <View
+                android:id="@+id/status_dot"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:background="@drawable/status_idle" />
+
+            <TextView
+                android:id="@+id/status_indicator"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Ready"
+                android:textColor="@color/on_surface"
+                android:textSize="14sp" />
+
+            <ProgressBar
+                android:id="@+id/voice_level_bar"
+                android:layout_width="120dp"
+                android:layout_height="6dp"
+                android:visibility="gone"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:progressTint="@color/primary"
+                android:progressBackgroundTint="@color/surface_variant" />
+
+        </LinearLayout>
+
+        <!-- Chat Messages -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chat_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:padding="8dp"
+            android:scrollbars="vertical" />
+
+        <!-- Bottom Input Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:background="@color/surface"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:elevation="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Hold mic to speak"
+                android:textColor="@color/on_surface_variant"
+                android:textSize="14sp"
+                android:gravity="center" />
+
+            <ImageButton
+                android:id="@+id/mic_button"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/ic_mic"
+                android:background="@drawable/mic_button_bg"
+                android:contentDescription="Mic button"
+                android:elevation="4dp"
+                android:padding="12dp"
+                android:scaleType="fitCenter" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

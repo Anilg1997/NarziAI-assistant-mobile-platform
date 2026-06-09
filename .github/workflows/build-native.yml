@@ -1,0 +1,211 @@
+# ============================================================================
+# build-native.yml - GitHub Actions workflow
+# Builds libnarzoai_jni.so for arm64-v8a and armeabi-v7a,
+# then uploads them as release artifacts for the fallback download task.
+# ============================================================================
+
+name: Build Native Libraries
+
+on:
+  # Trigger on demand from the Actions tab
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+  # Trigger when a new release is published
+  release:
+    types: [published]
+
+  # Trigger on pushes to main that change native code
+  push:
+    branches: [main]
+    paths:
+      - 'app/src/main/cpp/**'
+      - 'app/build.gradle'
+
+jobs:
+  build:
+    name: Build libnarzoai_jni.so for ${{ matrix.abi }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        abi: [arm64-v8a, armeabi-v7a]
+        include:
+          - abi: arm64-v8a
+            ndk_target: aarch64-linux-android21
+            cmake_system_processor: aarch64
+          - abi: armeabi-v7a
+            ndk_target: armv7a-linux-androideabi21
+            cmake_system_processor: armv7-a
+
+    steps:
+      # ======================================================================
+      # Step 1: Checkout the repository
+      # ======================================================================
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      # ======================================================================
+      # Step 2: Set up Android NDK
+      # ======================================================================
+      - name: Setup Android NDK
+        id: setup_ndk
+        run: |
+          # Download and extract Android NDK
+          NDK_VERSION="r26d"
+          NDK_ZIP="android-ndk-${NDK_VERSION}-linux.zip"
+          NDK_URL="https://dl.google.com/android/repository/${NDK_ZIP}"
+
+          echo "Downloading Android NDK ${NDK_VERSION}..."
+          wget -q --progress=bar:force "${NDK_URL}" -O "/tmp/${NDK_ZIP}"
+
+          echo "Extracting NDK..."
+          unzip -q "/tmp/${NDK_ZIP}" -d /tmp/
+          echo "NDK_PATH=/tmp/android-ndk-${NDK_VERSION}" >> $GITHUB_ENV
+          echo "NDK extracted to /tmp/android-ndk-${NDK_VERSION}"
+
+      # ======================================================================
+      # Step 3: Clone native library sources
+      # ======================================================================
+      - name: Clone llama.cpp
+        run: |
+          git clone --depth 1 --branch b3865 \
+            https://github.com/ggml-org/llama.cpp \
+            /tmp/llama.cpp
+          echo "llama.cpp cloned"
+
+      - name: Clone whisper.cpp
+        run: |
+          git clone --depth 1 --branch v1.7.4 \
+            https://github.com/ggerganov/whisper.cpp \
+            /tmp/whisper.cpp
+          echo "whisper.cpp cloned"
+
+      # ======================================================================
+      # Step 4: Configure CMake
+      # ======================================================================
+      - name: Configure CMake for ${{ matrix.abi }}
+        run: |
+          mkdir -p /tmp/build/${{ matrix.abi }}
+          cd /tmp/build/${{ matrix.abi }}
+
+          cmake ${{ github.workspace }}/app/src/main/cpp \
+            -DCMAKE_TOOLCHAIN_FILE=${{ env.NDK_PATH }}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} \
+            -DANDROID_PLATFORM=android-29 \
+            -DANDROID_STL=c++_static \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_LOCAL_REPOS=ON \
+            -DLLAMA_CPP_DIR=/tmp/llama.cpp \
+            -DWHISPER_CPP_DIR=/tmp/whisper.cpp \
+            -DCMAKE_SYSTEM_NAME=Android \
+            -DCMAKE_ANDROID_NDK=${{ env.NDK_PATH }} \
+            -DCMAKE_ANDROID_ARCH_ABI=${{ matrix.abi }}
+
+      # ======================================================================
+      # Step 5: Build
+      # ======================================================================
+      - name: Build libnarzoai_jni.so for ${{ matrix.abi }}
+        run: |
+          cd /tmp/build/${{ matrix.abi }}
+          cmake --build . --target narzoai_jni --config Release -j$(nproc)
+
+      # ======================================================================
+      # Step 6: Verify and copy output
+      # ======================================================================
+      - name: Verify and copy .so file
+        run: |
+          # Find the built .so file and copy it
+          SO_FILE=$(find /tmp/build/${{ matrix.abi }} -name "libnarzoai_jni.so" -type f 2>/dev/null | head -1)
+
+          if [ -z "$SO_FILE" ]; then
+            echo "ERROR: libnarzoai_jni.so not found in build output!"
+            find /tmp/build/${{ matrix.abi }} -name "*.so" -type f
+            exit 1
+          fi
+
+          echo "Found .so at: $SO_FILE"
+          ls -lh "$SO_FILE"
+
+          # Copy to output directory
+          mkdir -p /tmp/output/${{ matrix.abi }}
+          cp "$SO_FILE" /tmp/output/${{ matrix.abi }}/libnarzoai_jni.so
+
+          # Verify the file
+          file /tmp/output/${{ matrix.abi }}/libnarzoai_jni.so
+          ls -lh /tmp/output/${{ matrix.abi }}/libnarzoai_jni.so
+
+      # ======================================================================
+      # Step 7: Upload artifact
+      # ======================================================================
+      - name: Upload .so artifact for ${{ matrix.abi }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: libnarzoai_jni_${{ matrix.abi }}
+          path: /tmp/output/${{ matrix.abi }}/libnarzoai_jni.so
+          if-no-files-found: error
+          retention-days: 90
+
+  # ==========================================================================
+  # Package job: Combine both ABIs into a single release package
+  # ==========================================================================
+  package:
+    name: Package release archive
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create release archive
+        run: |
+          # Create the release directory structure
+          mkdir -p release/narzoai-native-${{ github.event.inputs.version || github.ref_name }}
+
+          # Copy .so files to proper jniLibs structure
+          cp libnarzoai_jni_arm64-v8a/libnarzoai_jni.so \
+            release/narzoai-native-${{ github.event.inputs.version || github.ref_name }}/arm64-v8a/
+          cp libnarzoai_jni_armeabi-v7a/libnarzoai_jni.so \
+            release/narzoai-native-${{ github.event.inputs.version || github.ref_name }}/armeabi-v7a/
+
+          # Add metadata
+          cat > release/narzoai-native-${{ github.event.inputs.version || github.ref_name }}/metadata.txt << EOF
+          NarzoAI Assistant - Pre-built Native Libraries
+          Version: ${{ github.event.inputs.version || github.ref_name }}
+          Build Date: $(date -u '+%Y-%m-%dT%H:%M:%SZ')
+          Commit: ${{ github.sha }}
+          ABIs: arm64-v8a, armeabi-v7a
+          Libraries: libnarzoai_jni.so (includes llama.cpp + whisper.cpp statically linked)
+          Instructions: Place .so files in app/src/main/jniLibs/{abi}/ directory
+          EOF
+
+          # Create archive
+          cd release
+          tar -czf narzoai-native-${{ github.event.inputs.version || github.ref_name }}.tar.gz \
+            narzoai-native-${{ github.event.inputs.version || github.ref_name }}/
+          zip -r narzoai-native-${{ github.event.inputs.version || github.ref_name }}.zip \
+            narzoai-native-${{ github.event.inputs.version || github.ref_name }}/
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'release'
+        with:
+          files: |
+            release/narzoai-native-*.tar.gz
+            release/narzoai-native-*.zip
+          generate_release_notes: false
+
+      - name: Upload packaged artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: narzoai-native-release
+          path: release/
+          retention-days: 90

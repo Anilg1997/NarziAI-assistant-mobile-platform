@@ -1,0 +1,5 @@
+# Place AI model files here:
+# - gemma-2b-it-q4_k_m.gguf (from HuggingFace)
+# - ggml-tiny.bin (from HuggingFace)
+#
+# These files are too large for git and are gitignored.

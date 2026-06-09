@@ -1,0 +1,363 @@
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+// ============================================================================
+// NarzoAI Native Library Download Tasks
+// Downloads pre-built .so files from GitHub Releases as fallback when
+// CMake/NDK build fails or when the user opts out of native builds.
+// ============================================================================
+
+/**
+ * Configuration for native library fallback download.
+ * Change these URLs to point to your own GitHub release.
+ */
+ext {
+    // Whether to use pre-built binaries instead of CMake builds
+    // Can also be enabled via: ./gradlew assembleDebug -PusePrebuiltNative
+    narzoaiUsePrebuiltNative = false
+
+    // GitHub repository for pre-built native libraries
+    narzoaiNativeRepo = "Anilg1997/NarzoAI-Assistant"
+
+    // Default fallback version (use "latest" for the latest release)
+    narzoaiNativeVersion = "latest"
+}
+
+// Conditionally include or exclude the CMake external native build
+// by setting the cmake path only when NOT using pre-built libraries.
+def usePrebuilt = project.hasProperty("usePrebuiltNative") || ext.narzoaiUsePrebuiltNative
+
+if (usePrebuilt) {
+    logger.warn("NarzoAI: Using pre-built native libraries (CMake/NDK build disabled)")
+    logger.warn("Make sure pre-built .so files are in app/src/main/jniLibs/")
+    logger.warn("Run './gradlew downloadNarzoaiNativeLibs' to download them.")
+} else {
+    // CMake external native build is active
+    logger.lifecycle("NarzoAI: CMake native build enabled (use -PusePrebuiltNative to use pre-built binaries)")
+}
+
+/**
+ * Task: downloadNarzoaiNativeLibs
+ *
+ * Downloads pre-built libnarzoai_jni.so files from GitHub Releases
+ * and extracts them into the jniLibs directory.
+ *
+ * Usage:
+ *   ./gradlew downloadNarzoaiNativeLibs              # Download latest version
+ *   ./gradlew downloadNarzoaiNativeLibs -PVERSION=v1.0.0  # Specific version
+ */
+tasks.register("downloadNarzoaiNativeLibs") {
+    description = "Downloads pre-built native .so libraries from GitHub Releases"
+    group = "NarzoAI"
+
+    doLast {
+        def version = project.findProperty("VERSION") ?: ext.narzoaiNativeVersion
+        def repo = ext.narzoaiNativeRepo
+
+        // Resolve the download URL (always uses .zip format)
+        def downloadUrl
+        if (version == "latest") {
+            downloadUrl = "https://github.com/${repo}/releases/latest/download/narzoai-native-latest.zip"
+        } else {
+            downloadUrl = "https://github.com/${repo}/releases/download/${version}/narzoai-native-${version}.zip"
+        }
+
+        def jniLibsDir = file("src/main/jniLibs")
+        def downloadDir = file("${buildDir}/narzoai-native-download")
+        def zipFile = file("${downloadDir}/narzoai-native.zip")
+
+        logger.lifecycle("============================================")
+        logger.lifecycle("NarzoAI Native Library Download")
+        logger.lifecycle("============================================")
+        logger.lifecycle("Version: ${version}")
+        logger.lifecycle("Download URL: ${downloadUrl}")
+        logger.lifecycle("Extract to: ${jniLibsDir}")
+
+        // Step 1: Create download directory
+        downloadDir.mkdirs()
+
+        // Step 2: Download the zip file
+        logger.lifecycle("Downloading pre-built native libraries...")
+        try {
+            def ant = new AntBuilder()
+            ant.get(
+                src: downloadUrl,
+                dest: zipFile,
+                skipexisting: false,
+                verbose: true
+            )
+        } catch (Exception e) {
+            throw new GradleException(
+                "Failed to download native libraries from ${downloadUrl}.\n" +
+                "Reason: ${e.message}\n\n" +
+                "Make sure the release exists or build manually:\n" +
+                "  1. Install Android NDK\n" +
+                "  2. Run: ./gradlew assembleDebug\n" +
+                "  3. Or trigger the GitHub Actions workflow: .github/workflows/build-native.yml"
+            )
+        }
+
+        if (!zipFile.exists()) {
+            throw new GradleException(
+                "Download completed but file not found: ${zipFile.absolutePath}"
+            )
+        }
+
+        logger.lifecycle("Downloaded: ${String.format("%.0f", zipFile.length() / 1024.0)} KB")
+
+        // Step 3: Extract the zip archive
+        logger.lifecycle("Extracting native libraries...")
+        copy {
+            from zipTree(zipFile)
+            into downloadDir
+        }
+
+        // Step 4: Find the extraction root (might be nested under one directory)
+        def extractedDirs = downloadDir.listFiles()?.findAll { it.isDirectory() } ?: []
+        def extractedRoot = downloadDir
+        if (extractedDirs.size() == 1) {
+            extractedRoot = extractedDirs[0]
+            logger.lifecycle("Found nested extraction directory: ${extractedRoot.name}")
+        }
+
+        // Step 5: Copy .so files to correct jniLibs directories
+        logger.lifecycle("Copying .so files to jniLibs...")
+
+        def abis = ["arm64-v8a", "armeabi-v7a"]
+        int copiedCount = 0
+
+        abis.each { abi ->
+            def sourceFile = new File(extractedRoot, "${abi}/libnarzoai_jni.so")
+            def targetDir = new File(jniLibsDir, abi)
+
+            if (sourceFile.exists()) {
+                targetDir.mkdirs()
+
+                // Remove any existing .so file (keep .gitkeep intact)
+                def existingFiles = targetDir.listFiles()?.findAll {
+                    it.name.endsWith(".so")
+                } ?: []
+                existingFiles.each { it.delete() }
+
+                // Copy the new .so file
+                copy {
+                    from sourceFile
+                    into targetDir
+                }
+
+                // Make executable on Unix systems
+                def copiedFile = new File(targetDir, "libnarzoai_jni.so")
+                if (copiedFile.exists()) {
+                    copiedFile.setExecutable(true, false)
+                    def sizeKB = String.format("%.0f", copiedFile.length() / 1024.0)
+                    logger.lifecycle("  ${abi}: libnarzoai_jni.so (${sizeKB} KB) ✅")
+                    copiedCount++
+                }
+            } else {
+                logger.warn("  ${abi}: NOT FOUND (expected: ${sourceFile.absolutePath})")
+            }
+        }
+
+        // Step 6: Clean up download directory
+        delete downloadDir
+
+        if (copiedCount == 0) {
+            throw new GradleException(
+                "No .so files were extracted. The archive may be corrupted or incompatible.\n" +
+                "Try building native libraries locally with: ./gradlew assembleDebug"
+            )
+        }
+
+        logger.lifecycle("")
+        logger.lifecycle("✅ Native libraries installed successfully (${copiedCount}/${abis.size()} ABIs)")
+        logger.lifecycle("You can now build the app with: ./gradlew assembleDebug -PusePrebuiltNative")
+        logger.lifecycle("")
+    }
+}
+
+/**
+ * Task: checkNarzoaiNativeLibs
+ * Checks if native .so files exist in jniLibs for the configured ABIs.
+ */
+tasks.register("checkNarzoaiNativeLibs") {
+    description = "Checks if pre-built native libraries are already installed"
+    group = "NarzoAI"
+
+    doLast {
+        def jniLibsDir = file("src/main/jniLibs")
+        def abis = ["arm64-v8a", "armeabi-v7a"]
+        boolean allFound = true
+
+        logger.lifecycle("Checking pre-built native libraries in jniLibs...")
+
+        abis.each { abi ->
+            def soFile = new File(jniLibsDir, "${abi}/libnarzoai_jni.so")
+            if (soFile.exists()) {
+                def sizeKB = String.format("%.0f", soFile.length() / 1024.0)
+                logger.lifecycle("  ✅ ${abi}: libnarzoai_jni.so (${sizeKB} KB)")
+            } else {
+                logger.lifecycle("  ❌ ${abi}: NOT FOUND")
+                allFound = false
+            }
+        }
+
+        if (allFound) {
+            logger.lifecycle("All native libraries present. Run './gradlew assembleDebug -PusePrebuiltNative' to build.")
+        } else {
+            logger.lifecycle("Some native libraries are missing.")
+            logger.lifecycle("Run './gradlew downloadNarzoaiNativeLibs' to download them.")
+        }
+    }
+}
+
+/**
+ * Task: rebuildNarzoaiNative
+ * Cleans and re-downloads the native libraries.
+ */
+tasks.register("rebuildNarzoaiNative") {
+    description = "Cleans and re-downloads pre-built native libraries from GitHub Releases"
+    group = "NarzoAI"
+
+    dependsOn tasks.named("downloadNarzoaiNativeLibs")
+
+    doFirst {
+        logger.lifecycle("Cleaning existing native libraries before re-download...")
+
+        def jniLibsDir = file("src/main/jniLibs")
+        def abis = ["arm64-v8a", "armeabi-v7a"]
+
+        abis.each { abi ->
+            def soFile = new File(jniLibsDir, "${abi}/libnarzoai_jni.so")
+            if (soFile.exists()) {
+                soFile.delete()
+                logger.lifecycle("  Deleted: ${soFile.absolutePath}")
+            }
+        }
+    }
+}
+
+android {
+    namespace = "com.narzoai.assistant"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.narzoai.assistant"
+        minSdk = 29  // Android 10
+        targetSdk = 34  // Android 14
+        versionCode = 1
+        versionName = "1.0.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // NDK configuration for llama.cpp and whisper.cpp
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
+            isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildFeatures {
+        viewBinding = true
+    }
+
+    // External Native Build for llama.cpp and whisper.cpp via CMake
+    // Only active when NOT using pre-built binaries (-PusePrebuiltNative)
+    if (!usePrebuilt) {
+        externalNativeBuild {
+            cmake {
+                path = file("src/main/cpp/CMakeLists.txt")
+                version = "3.22.1"
+            }
+        }
+    }
+
+    // NDK configuration for llama.cpp and whisper.cpp
+    ndkVersion = "26.1.10909125"
+
+    // Allow large model files in assets
+    aaptOptions {
+        noCompress("gguf", "bin", "model")
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/NOTICE.md"
+            excludes += "/META-INF/LICENSE.md"
+        }
+    }
+}
+
+dependencies {
+    // AndroidX Core
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.activity:activity-ktx:1.8.2")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
+
+    // UI Components
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.cardview:cardview:1.0.0")
+
+    // Lifecycle
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-service:2.7.0")
+
+    // Google ML Kit - Object Detection and Text Recognition
+    implementation("com.google.mlkit:object-detection:17.0.1")
+    implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+    // CameraX for ML Kit
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // JSON parsing
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // OKHttp for potential future API calls
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Kotlin Reflection (for accessibility service)
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
+
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}

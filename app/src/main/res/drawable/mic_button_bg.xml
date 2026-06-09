@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Pressed / Active state -->
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <solid android:color="@color/mic_active" />
+            <size android:width="64dp" android:height="64dp" />
+        </shape>
+    </item>
+    <!-- Selected / Active state -->
+    <item android:state_selected="true">
+        <shape android:shape="oval">
+            <solid android:color="@color/mic_active" />
+            <size android:width="64dp" android:height="64dp" />
+        </shape>
+    </item>
+    <!-- Default state -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/mic_default" />
+            <size android:width="64dp" android:height="64dp" />
+            <stroke
+                android:width="2dp"
+                android:color="#33FFFFFF" />
+        </shape>
+    </item>
+</selector>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NarzoAI Assistant</string>
+    <string name="app_description">Offline AI Assistant with voice control, camera AI, and phone automation</string>
+
+    <!-- Status Messages -->
+    <string name="status_ready">Ready</string>
+    <string name="status_listening">Listening…</string>
+    <string name="status_processing">Processing…</string>
+    <string name="status_thinking">Thinking…</string>
+    <string name="status_speaking">Speaking…</string>
+    <string name="status_error">Error</string>
+    <string name="status_loading_model">Loading AI Model…</string>
+    <string name="status_model_ready">AI Ready</string>
+    <string name="status_no_model">Model not found</string>
+
+    <!-- Mic Button -->
+    <string name="mic_hold_to_speak">Hold to speak</string>
+    <string name="mic_release_to_stop">Release to stop</string>
+    <string name="mic_content_description">Microphone button</string>
+
+    <!-- Welcome Messages -->
+    <string name="welcome_message">Hello! I\'m NarzoAI, your offline AI assistant. Press and hold the mic button to speak, or type your message. I can help with tasks, answer questions, and control your phone.</string>
+    <string name="welcome_tip">Try saying: \'Hey Narzo, open WhatsApp\' or \'Set alarm at 7:30 AM\'</string>
+
+    <!-- Wake Word -->
+    <string name="wake_word">Hey Narzo</string>
+    <string name="wake_word_detected">Hey Narzo detected! I\'m listening…</string>
+    <string name="wake_word_response">Yes, I\'m listening</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_model_section">AI Model</string>
+    <string name="settings_permissions_section">Permissions</string>
+    <string name="settings_accessibility_section">Accessibility Service</string>
+    <string name="settings_wake_word_section">Wake Word</string>
+    <string name="settings_tts_section">Text to Speech</string>
+    <string name="settings_download_section">Download Models</string>
+    <string name="settings_about_section">About</string>
+
+    <!-- Permissions -->
+    <string name="permission_microphone">Microphone</string>
+    <string name="permission_microphone_desc">For voice recognition</string>
+    <string name="permission_camera">Camera</string>
+    <string name="permission_camera_desc">For AI vision features</string>
+    <string name="permission_notifications">Notifications</string>
+    <string name="permission_notifications_desc">Read notifications aloud</string>
+    <string name="permission_bluetooth">Bluetooth</string>
+    <string name="permission_bluetooth_desc">Control Bluetooth settings</string>
+    <string name="permission_overlay">Overlay</string>
+    <string name="permission_overlay_desc">Show status overlay</string>
+
+    <!-- Accessibility -->
+    <string name="accessibility_enabled">Enabled</string>
+    <string name="accessibility_disabled">Disabled</string>
+    <string name="accessibility_phone_control">Phone Control Service</string>
+
+    <!-- Model Cards -->
+    <string name="gemma_model_name">Gemma 2B GGUF</string>
+    <string name="gemma_model_source">Google - HuggingFace</string>
+    <string name="whisper_model_name">Whisper Tiny</string>
+    <string name="whisper_model_source">OpenAI - HuggingFace</string>
+
+    <!-- TTS -->
+    <string name="tts_speech_rate">Speech Rate</string>
+    <string name="tts_pitch">Pitch</string>
+    <string name="tts_test_button">Test Voice</string>
+
+    <!-- Camera -->
+    <string name="camera_mode_object">Mode: Object Detection</string>
+    <string name="camera_mode_text">Mode: Text Recognition</string>
+    <string name="camera_analyze">Analyze</string>
+    <string name="camera_no_objects">No objects detected</string>
+    <string name="camera_no_text">No text recognized</string>
+    <string name="camera_close">Close</string>
+
+    <!-- Commands Help -->
+    <string name="help_open_app">Open any app: "Open WhatsApp"</string>
+    <string name="help_set_alarm">Set alarm: "Set alarm at 7:30 AM"</string>
+    <string name="help_whatsapp">Send WhatsApp: "Send WhatsApp to +1234567890 Hello"</string>
+    <string name="help_wifi">Toggle WiFi: "WiFi on" / "WiFi off"</string>
+    <string name="help_bluetooth">Toggle Bluetooth: "Bluetooth on" / "Bluetooth off"</string>
+    <string name="help_volume">Control volume: "Volume up" / "Volume down"</string>
+    <string name="help_brightness">Set brightness: "Brightness 50%"</string>
+    <string name="help_battery">Check battery: "What\'s my battery level?"</string>
+    <string name="help_camera">Use camera: "Open camera" / "What do you see?"</string>
+    <string name="help_clear">Clear chat: "Clear chat"</string>
+
+    <!-- Errors -->
+    <string name="error_no_model">AI model not found. Please download from HuggingFace.</string>
+    <string name="error_permission_denied">Permission denied. Please enable in Settings.</string>
+    <string name="error_camera_unavailable">Camera is not available on this device.</string>
+    <string name="error_microphone_unavailable">Microphone is not available.</string>
+    <string name="error_processing">Failed to process your request. Please try again.</string>
+    <string name="error_low_memory">Low memory detected. Please close other apps.</string>
+    <string name="error_no_internet">No internet connection required. This app works offline.</string>
+
+    <!-- Menu -->
+    <string name="menu_settings">Settings</string>
+    <string name="menu_camera">Camera AI</string>
+    <string name="menu_clear_chat">Clear Chat</string>
+    <string name="menu_help">Help</string>
+
+    <!-- Other -->
+    <string name="action_dismiss">Dismiss</string>
+    <string name="action_later">Later</string>
+    <string name="action_open_settings">Open Settings</string>
+    <string name="action_download">Download</string>
+    <string name="action_retry">Retry</string>
+    <string name="message_copied">Message copied to clipboard</string>
+</resources>
