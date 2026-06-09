@@ -1,5 +1,6 @@
 package com.narzoai.assistant
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
@@ -34,6 +35,8 @@ import java.util.concurrent.Executors
  *
  * ML Kit runs entirely on-device, no internet required.
  */
+@OptIn(androidx.camera.core.ExperimentalGetImage::class)
+@SuppressLint("UnsafeOptInUsageError")
 class CameraAI(private val context: Context) {
 
     companion object {
@@ -182,7 +185,7 @@ class CameraAI(private val context: Context) {
     private fun detectObjects(imageProxy: ImageProxy) {
         initObjectDetector()
 
-        @androidx.camera.core.ExperimentalGetImage val mediaImage = imageProxy.image
+        val mediaImage = imageProxy.image
         if (mediaImage == null || objectDetector == null) {
             imageProxy.close()
             return
@@ -221,7 +224,7 @@ class CameraAI(private val context: Context) {
     private fun recognizeText(imageProxy: ImageProxy) {
         initTextRecognizer()
 
-        @androidx.camera.core.ExperimentalGetImage val mediaImage = imageProxy.image
+        val mediaImage = imageProxy.image
         if (mediaImage == null || textRecognizer == null) {
             imageProxy.close()
             return

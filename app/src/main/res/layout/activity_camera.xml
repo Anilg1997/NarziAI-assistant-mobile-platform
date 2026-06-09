@@ -34,7 +34,7 @@
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Close camera"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <TextView
             android:id="@+id/camera_status_text"
