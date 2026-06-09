@@ -191,7 +191,18 @@ class NarzoAccessibilityService : AccessibilityService() {
     fun findAndClickByContentDescription(description: String): Boolean {
         val rootNode = rootInActiveWindow ?: return false
 
-        val matchedNodes = rootNode.findAccessibilityNodeInfosByContentDescription(description)
+        // findAccessibilityNodeInfosByContentDescription not available, traverse tree instead
+        val matchedNodes = mutableListOf<AccessibilityNodeInfo>()
+        fun traverse(node: AccessibilityNodeInfo) {
+            if (node.contentDescription?.toString()?.contains(description, ignoreCase = true) == true) {
+                matchedNodes.add(node)
+            }
+            for (i in 0 until node.childCount) {
+                val child = node.getChild(i) ?: continue
+                traverse(child)
+            }
+        }
+        traverse(rootNode)
         rootNode.recycle()
 
         if (matchedNodes.isNotEmpty()) {

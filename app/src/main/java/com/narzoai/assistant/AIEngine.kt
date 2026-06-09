@@ -300,6 +300,11 @@ class AIEngine(private val context: Context) {
                     sb.append(msg.content)
                     sb.append("\n<end_of_turn>\n")
                 }
+                Role.SYSTEM -> {
+                    sb.append("<start_of_turn>system\n")
+                    sb.append(msg.content)
+                    sb.append("\n<end_of_turn>\n")
+                }
             }
         }
 

@@ -26,7 +26,7 @@ class TTSEngine(private val context: Context) {
     }
 
     private var tts: TextToSpeech? = null
-    private var isInitialized = false
+    private var ttsInitialized = false
 
     // TTS state
     private val _isSpeaking = MutableStateFlow(false)
@@ -62,7 +62,7 @@ class TTSEngine(private val context: Context) {
             when (status) {
                 TextToSpeech.SUCCESS -> {
                     Log.d(TAG, "TTS initialized successfully")
-                    isInitialized = true
+                    ttsInitialized = true
                     _isInitialized.value = true
 
                     // Configure TTS settings
@@ -108,7 +108,7 @@ class TTSEngine(private val context: Context) {
                 }
                 TextToSpeech.ERROR -> {
                     Log.e(TAG, "TTS initialization failed")
-                    isInitialized = false
+                    ttsInitialized = false
                     onError?.invoke("Failed to initialize text-to-speech engine")
                 }
             }
@@ -123,7 +123,7 @@ class TTSEngine(private val context: Context) {
      * @param queueMode QUEUE_ADD (default) to queue, QUEUE_FLUSH to interrupt current speech
      */
     fun speak(text: String, queueMode: Int = TextToSpeech.QUEUE_ADD) {
-        if (!isInitialized || tts == null) {
+        if (!ttsInitialized || tts == null) {
             Log.w(TAG, "TTS not initialized, cannot speak")
             return
         }
@@ -131,17 +131,13 @@ class TTSEngine(private val context: Context) {
         Log.d(TAG, "Speaking: $text")
 
         // Configure speaking parameters
+        @Suppress("DEPRECATION")
         val params = Bundle().apply {
             putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volumeLevel)
             putFloat(TextToSpeech.Engine.KEY_PARAM_PAN, 0.0f) // Center pan
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            tts?.speak(text, queueMode, params, UTTERANCE_ID)
-        } else {
-            @Suppress("DEPRECATION")
-            tts?.speak(text, queueMode, params)
-        }
+        tts?.speak(text, queueMode, params, UTTERANCE_ID)
     }
 
     /**
@@ -221,7 +217,7 @@ class TTSEngine(private val context: Context) {
         stop()
         tts?.shutdown()
         tts = null
-        isInitialized = false
+        ttsInitialized = false
         _isInitialized.value = false
         _isSpeaking.value = false
     }
@@ -229,14 +225,14 @@ class TTSEngine(private val context: Context) {
     /**
      * Check if TTS engine is ready.
      */
-    fun isReady(): Boolean = isInitialized && tts != null
+    fun isReady(): Boolean = isInitialized.value && tts != null
 
     /**
      * Get the current initialization state.
      */
     fun getState(): TTSState {
         return when {
-            !isInitialized -> TTSState.INITIALIZING
+            !(isInitialized.value) -> TTSState.INITIALIZING
             isSpeaking.value -> TTSState.SPEAKING
             else -> TTSState.READY
         }
