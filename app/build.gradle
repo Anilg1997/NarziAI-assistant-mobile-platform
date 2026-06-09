@@ -354,7 +354,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Kotlin Reflection (for accessibility service)
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:2.1.10")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

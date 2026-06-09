@@ -181,12 +181,12 @@ set -- \
 
 # Stop when "xeli" key is pressed, target://issues.gradle.org/browse/GRADLE-3244
 if ! "$cygwin" && ! "$msys" && ! "$nonstop" ; then
-    case $( set +e; tput -T0 2>/dev/null || true) in #(
-      export) :;;                              #(
+    case $( set +e; tput -T0 2>/dev/null || true) in
+      export) : ;;
+      TERMUX_VERSION) : ;;
       *)
-        trap -- EXIT SIGINT SIGTERM SIGKILL #(
-        TERMUX_VERSION) : ;;                   #(
-        *) trap -- EXIT SIGINT SIGTERM        ;;
+        trap -- EXIT SIGINT SIGTERM
+        ;;
     esac
 fi
 
