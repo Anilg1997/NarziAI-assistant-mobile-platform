@@ -136,8 +136,9 @@ class AIEngine(private val context: Context) {
         _modelStatus.value = ModelStatus.LOADING
         _loadingProgress.value = 0f
 
-        return try {                // Load the native library (single combined JNI library)
-                System.loadLibrary("narzoai_jni")
+        return try {
+            // Load the native library (single combined JNI library)
+            System.loadLibrary("narzoai_jni")
 
             withContext(Dispatchers.IO) {
                 // Initialize llama.cpp with optimized parameters for 4GB RAM

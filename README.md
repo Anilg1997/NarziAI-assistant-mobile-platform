@@ -78,7 +78,7 @@ All AI processing happens **entirely on-device** — no internet connection requ
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Anilg1997/NarzoAI-Assistant.git
+   git clone https://github.com/Anilg1997/NarziAI-assistant-mobile-platform.git
    cd NarzoAI-Assistant
    ```
 
@@ -179,7 +179,7 @@ Then in the app, go to Settings → Import Models from Storage.
 ## 🏗️ Project Structure
 
 ```
-NarzoAI-Assistant/
+NarziAI-assistant-mobile-platform/
 ├── app/
 │   ├── src/main/
 │   │   ├── java/com/narzoai/assistant/

@@ -335,15 +335,8 @@ Java_com_narzoai_assistant_AIEngine_llamaInference(
             break;
         }
 
-        // Apply temperature scaling
-        if (temperature > 0.0f) {
-            for (int j = 0; j < n_vocab; j++) {
-                logits[j] /= temperature;
-            }
-        }
-
         // Step 1: Apply repetition penalty to logits (pre-softmax)
-        // Penalizes tokens that have already appeared using frequency penalty
+        // Penalizes tokens that have already appeared
         if (repeat_penalty > 1.0f && !response.empty()) {
             for (int j = 0; j < n_vocab; j++) {
                 if (logits[j] > 0.0f) {

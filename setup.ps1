@@ -53,7 +53,7 @@ $Script:ModelsPath     = Join-Path $Script:ProjectRoot "app" "src" "main" "asset
 $Script:ApkRootDir     = Join-Path $Script:ProjectRoot "app" "build" "outputs" "apk"
 
 # GitHub release config (match build.gradle)
-$Script:NativeRepo = "Anilg1997/NarzoAI-Assistant"
+$Script:NativeRepo = "Anilg1997/NarziAI-assistant-mobile-platform"
 
 # HuggingFace model URLs
 $Script:GemmaModelUrl  = "https://huggingface.co/google/gemma-2b-GGUF/resolve/main/gemma-2b-it-q4_k_m.gguf"

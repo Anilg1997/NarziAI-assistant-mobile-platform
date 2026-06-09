@@ -19,7 +19,7 @@ ext {
     narzoaiUsePrebuiltNative = false
 
     // GitHub repository for pre-built native libraries
-    narzoaiNativeRepo = "Anilg1997/NarzoAI-Assistant"
+    narzoaiNativeRepo = "Anilg1997/NarziAI-assistant-mobile-platform"
 
     // Default fallback version (use "latest" for the latest release)
     narzoaiNativeVersion = "latest"
