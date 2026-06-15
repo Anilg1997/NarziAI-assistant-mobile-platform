@@ -319,14 +319,12 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## 📸 Screenshots
 
-<!-- 
-TODO: Add screenshots here
-![Main Chat Screen](screenshots/main_chat.png)
-![Camera AI](screenshots/camera_ai.png)
-![Settings](screenshots/settings.png)
--->
-
-*Screenshots will be added in a future update.*
+| Screen | Preview |
+|--------|---------|
+| **Main Chat** — AI chat interface with conversation history and voice input | ![Main Chat](screenshots/main-chat.svg) |
+| **Camera AI** — Real-time object detection with bounding box overlay | ![Camera AI](screenshots/camera-ai.svg) |
+| **Settings** — AI model management, permissions, and memory optimization | ![Settings](screenshots/settings.svg) |
+| **Voice Recognition** — Voice input with whisper transcription and visualization | ![Voice](screenshots/voice-recognition.svg) |
 
 ---
 

@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" font-family="'Roboto','Segoe UI',sans-serif">
+  <defs>
+    <linearGradient id="toolbar" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a237e"/><stop offset="100%" stop-color="#3949ab"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Phone body -->
+  <rect x="40" y="10" rx="24" ry="24" width="520" height="730" fill="white" stroke="#ddd" stroke-width="2"/>
+  <rect x="40" y="10" rx="24" ry="24" width="520" height="40" fill="#1a237e"/>
+  <text x="64" y="32" font-size="11" fill="white">9:41</text>
+  <text x="480" y="32" font-size="11" fill="white">📶 🔋 76%</text>
+  <rect x="250" y="18" rx="10" ry="10" width="60" height="16" fill="black"/>
+
+  <!-- Toolbar -->
+  <rect x="40" y="50" width="520" height="56" fill="url(#toolbar)"/>
+  <text x="64" y="84" font-size="14" fill="white" font-weight="500">⚙️ Settings</text>
+
+  <!-- Settings List -->
+  <!-- AI Model section -->
+  <text x="64" y="130" font-size="12" fill="#666" font-weight="500">AI MODELS</text>
+
+  <rect x="56" y="140" width="488" height="60" fill="white"/>
+  <text x="74" y="164" font-size="14" fill="#333">Gemma 2B GGUF Model</text>
+  <text x="74" y="184" font-size="11" fill="#666">gemma-2b-it-q4_k_m.gguf • 1.4 GB</text>
+  <rect x="460" y="158" rx="10" ry="10" width="60" height="24" fill="#4caf50"/>
+  <text x="490" y="175" font-size="11" fill="white" text-anchor="middle" font-weight="500">Loaded</text>
+  <line x1="56" y1="200" x2="544" y2="200" stroke="#f0f0f0" stroke-width="1"/>
+
+  <rect x="56" y="200" width="488" height="60" fill="white"/>
+  <text x="74" y="224" font-size="14" fill="#333">Whisper Tiny (Speech)</text>
+  <text x="74" y="244" font-size="11" fill="#666">ggml-tiny.bin • 75 MB</text>
+  <rect x="460" y="218" rx="10" ry="10" width="60" height="24" fill="#4caf50"/>
+  <text x="490" y="235" font-size="11" fill="white" text-anchor="middle" font-weight="500">Loaded</text>
+  <line x1="56" y1="260" x2="544" y2="260" stroke="#f0f0f0" stroke-width="1"/>
+
+  <!-- Recognition section -->
+  <text x="64" y="286" font-size="12" fill="#666" font-weight="500">RECOGNITION</text>
+
+  <rect x="56" y="296" width="488" height="48" fill="white"/>
+  <text x="74" y="324" font-size="14" fill="#333">🔊 Wake Word Detection ("Hey Narzo")</text>
+  <rect x="470" y="308" rx="10" ry="10" width="24" height="24" fill="#4caf50"/>
+  <circle cx="482" cy="320" r="8" fill="white"/>
+  <line x1="56" y1="344" x2="544" y2="344" stroke="#f0f0f0" stroke-width="1"/>
+
+  <rect x="56" y="344" width="488" height="48" fill="white"/>
+  <text x="74" y="372" font-size="14" fill="#333">🎤 Voice Level Visualization</text>
+  <rect x="470" y="356" rx="10" ry="10" width="24" height="24" fill="#4caf50"/>
+  <circle cx="482" cy="368" r="8" fill="white"/>
+  <line x1="56" y1="392" x2="544" y2="392" stroke="#f0f0f0" stroke-width="1"/>
+
+  <!-- Phone Control section -->
+  <text x="64" y="418" font-size="12" fill="#666" font-weight="500">PHONE CONTROL</text>
+
+  <rect x="56" y="428" width="488" height="48" fill="white"/>
+  <text x="74" y="456" font-size="14" fill="#333">📱 Accessibility Service</text>
+  <rect x="470" y="440" rx="10" ry="10" width="24" height="24" fill="#4caf50"/>
+  <circle cx="482" cy="452" r="8" fill="white"/>
+  <line x1="56" y1="476" x2="544" y2="476" stroke="#f0f0f0" stroke-width="1"/>
+
+  <rect x="56" y="476" width="488" height="48" fill="white"/>
+  <text x="74" y="504" font-size="14" fill="#333">🔔 Read Notifications Aloud</text>
+  <rect x="470" y="488" rx="10" ry="10" width="24" height="24" fill="#4caf50"/>
+  <circle cx="482" cy="500" r="8" fill="white"/>
+  <line x1="56" y1="524" x2="544" y2="524" stroke="#f0f0f0" stroke-width="1"/>
+
+  <!-- Memory section -->
+  <text x="64" y="550" font-size="12" fill="#666" font-weight="500">MEMORY OPTIMIZATION</text>
+
+  <rect x="56" y="560" width="488" height="60" fill="white"/>
+  <text x="74" y="584" font-size="14" fill="#333">Context Window Size</text>
+  <text x="74" y="604" font-size="11" fill="#666">2048 tokens (optimized for 4GB RAM)</text>
+  <rect x="410" y="580" rx="6" ry="6" width="80" height="28" fill="#e8eaf6"/>
+  <text x="450" y="600" font-size="12" fill="#1a237e" text-anchor="middle">2048</text>
+  <line x1="56" y1="620" x2="544" y2="620" stroke="#f0f0f0" stroke-width="1"/>
+
+  <rect x="56" y="620" width="488" height="48" fill="white"/>
+  <text x="74" y="648" font-size="14" fill="#333">Auto-unload models in background</text>
+  <rect x="470" y="632" rx="10" ry="10" width="24" height="24" fill="#4caf50"/>
+  <circle cx="482" cy="644" r="8" fill="white"/>
+
+  <!-- Storage info -->
+  <rect x="56" y="680" rx="8" ry="8" width="488" height="44" fill="#fff8e1" stroke="#ffe082" stroke-width="1"/>
+  <text x="74" y="706" font-size="12" fill="#f57c00">💾 Models stored: 1.5 GB / 2.5 GB used — 40% free</text>
+
+  <rect x="220" y="726" rx="4" ry="4" width="160" height="4" fill="#ddd"/>
+</svg>
