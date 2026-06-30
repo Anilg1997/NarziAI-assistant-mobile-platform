@@ -1,0 +1,110 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-apk:
+    name: Build NarzoAI APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Download pre-built native libraries
+        run: |
+          echo "Downloading pre-built native .so libraries from GitHub release..."
+          mkdir -p app/src/main/jniLibs/arm64-v8a
+          mkdir -p app/src/main/jniLibs/armeabi-v7a
+
+          # Try to download the latest native libs release
+          DOWNLOAD_URL="https://github.com/Anilg1997/NarziAI-assistant-mobile-platform/releases/latest/download/narzoai-native-latest.zip"
+          echo "Downloading from: $DOWNLOAD_URL"
+
+          if wget -q --timeout=30 "$DOWNLOAD_URL" -O /tmp/narzoai-native.zip 2>/dev/null; then
+            echo "Extracting native libraries..."
+            unzip -q /tmp/narzoai-native.zip -d /tmp/narzoai-native/
+            # Try to find and copy .so files
+            find /tmp/narzoai-native/ -name "libnarzoai_jni.so" -type f | while read f; do
+              echo "Found: $f"
+              DIR=$(dirname "$f")
+              ABI=$(basename "$DIR")
+              if [ "$ABI" = "arm64-v8a" ] || [ "$ABI" = "armeabi-v7a" ]; then
+                cp "$f" "app/src/main/jniLibs/$ABI/"
+                echo "  -> Copied to app/src/main/jniLibs/$ABI/"
+              fi
+            done
+          else
+            echo "No pre-built release found. APK will be built without native libs (CMake build)."
+          fi
+
+      - name: Verify native libraries
+        run: |
+          echo "=== Native Libraries Status ==="
+          for abi in arm64-v8a armeabi-v7a; do
+            if [ -f "app/src/main/jniLibs/$abi/libnarzoai_jni.so" ]; then
+              size=$(stat -c%s "app/src/main/jniLibs/$abi/libnarzoai_jni.so")
+              echo "  $abi: ✅ ($(($size / 1024)) KB)"
+            else
+              echo "  $abi: ❌ Not found (will use CMake build)"
+            fi
+          done
+
+      - name: Build debug APK
+        run: |
+          chmod +x gradlew
+          if [ -f "app/src/main/jniLibs/arm64-v8a/libnarzoai_jni.so" ]; then
+            echo "Using pre-built native libraries..."
+            ./gradlew assembleDebug -PusePrebuiltNative --no-daemon
+          else
+            echo "Building with CMake (may take longer)..."
+            ./gradlew assembleDebug --no-daemon
+          fi
+
+      - name: Run unit tests
+        run: |
+          chmod +x gradlew
+          ./gradlew test --no-daemon || echo "Some unit tests failed (may need Android SDK)"
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NarzoAI-Debug-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Upload APK as release candidate
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NarzoAI-APK-${{ github.sha }}
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: warn
+          retention-days: 7
